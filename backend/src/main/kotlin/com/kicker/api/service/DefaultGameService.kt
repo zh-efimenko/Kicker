@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate.now
+import java.util.*
 
 /**
  * @author Yauheni Efimenko
@@ -89,7 +90,12 @@ class DefaultGameService(
         val loser1 = playerService.get(request.loser1Id!!)
         val loser2 = playerService.get(request.loser2Id!!)
 
-        val game = Game(request.losersGoals!!, winner1, winner2, loser1, loser2, reporter)
+
+        val game = if (Objects.nonNull(request.date)) {
+            Game(request.losersGoals!!, winner1, winner2, loser1, loser2, reporter, request.date!!.toLocalDateTime())
+        } else {
+            Game(request.losersGoals!!, winner1, winner2, loser1, loser2, reporter)
+        }
         val persistGame = repository.save(game)
 
         eventPublisher.publishEvent(persistGame)

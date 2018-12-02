@@ -2,6 +2,7 @@ package com.kicker.api.domain.model.game
 
 import com.kicker.api.annotation.FieldMatch
 import com.kicker.api.annotation.FieldMatches
+import java.sql.Timestamp
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
 import javax.validation.constraints.NotNull
@@ -22,5 +23,6 @@ data class GameRegistrationRequest(
         @field:NotNull var winner2Id: Long? = null,
         @field:NotNull var loser1Id: Long? = null,
         @field:NotNull var loser2Id: Long? = null,
-        @field:Min(value = 0) @field:Max(9) var losersGoals: Int? = null
+        @field:NotNull @field:Min(value = 0) @field:Max(9) var losersGoals: Int? = null,
+        var date: Timestamp? = null
 )
