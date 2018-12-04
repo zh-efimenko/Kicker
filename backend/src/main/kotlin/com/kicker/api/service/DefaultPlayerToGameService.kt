@@ -65,7 +65,7 @@ class DefaultPlayerToGameService(
         return repository.calculateDeltaByPlayerAndIntervalDates(player, dates.first, dates.second)
     }
 
-
+    @Transactional
     override fun updateStats(date: LocalDate) {
         playerService.getAll().forEach {
             val stats = playerStatsService.getByPlayer(it.id)
