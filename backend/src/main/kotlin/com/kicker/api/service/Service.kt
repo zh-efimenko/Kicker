@@ -11,6 +11,7 @@ import com.kicker.api.model.base.BaseModel
 import org.springframework.data.domain.Page
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDate
 
 /**
  * @author Yauheni Efimenko
@@ -60,6 +61,10 @@ interface PlayerToGameService : BaseService<PlayerToGame> {
     fun getDeltaPerWeekDuring10WeeksByPlayer(playerId: Long): List<Double>
 
     fun getActualRatingByPlayer(playerId: Long): Double
+
+    fun getActualRatingByPlayer(playerId: Long, date: LocalDate): Double
+
+    fun updateStats(date: LocalDate)
 
 }
 

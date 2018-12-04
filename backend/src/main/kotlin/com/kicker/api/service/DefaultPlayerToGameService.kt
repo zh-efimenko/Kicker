@@ -11,6 +11,7 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.domain.Page
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 /**
  * @author Yauheni Efimenko
@@ -20,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional
 class DefaultPlayerToGameService(
         private val repository: PlayerToGameRepository,
         private val playerService: PlayerService,
-        private val playerSettingsProperties: PlayerSettingsProperties
+        private val playerSettingsProperties: PlayerSettingsProperties,
+        private val playerStatsService: PlayerStatsService,
+        private val gameService: GameService
 ) : DefaultBaseService<PlayerToGame, PlayerToGameRepository>(repository), PlayerToGameService {
 
     @Cacheable("playerGames")
@@ -58,6 +61,38 @@ class DefaultPlayerToGameService(
     private fun getDeltaByPlayerAndWeeksAgo(playerId: Long, weeksAgo: Long): Double {
         val player = playerService.get(playerId)
         val dates = DateUtils.getIntervalDatesOfWeek(weeksAgo)
+
+        return repository.calculateDeltaByPlayerAndIntervalDates(player, dates.first, dates.second)
+    }
+
+
+    override fun updateStats(date: LocalDate) {
+        playerService.getAll().forEach {
+            val stats = playerStatsService.getByPlayer(it.id)
+
+            stats.rating = getActualRatingByPlayer(it.id, date)
+            stats.rated = gameService.countDuring10WeeksByPlayer(it.id).toInt()
+            playerStatsService.save(stats)
+        }
+    }
+
+    override fun getActualRatingByPlayer(playerId: Long, date: LocalDate): Double {
+        var rating = PlayerStats.PLAYER_RATING
+
+        for (i in 0..playerSettingsProperties.countWeeks!!) {
+            val deltaForWeek = getDeltaByPlayerAndWeeksAgo(playerId, date, i)
+            val obsolescenceDeltaForWeek = RatingUtils.getObsolescenceDelta(deltaForWeek,
+                    playerSettingsProperties.countWeeks!!, i)
+
+            rating += obsolescenceDeltaForWeek
+        }
+
+        return rating
+    }
+
+    private fun getDeltaByPlayerAndWeeksAgo(playerId: Long, date: LocalDate, weeksAgo: Long): Double {
+        val player = playerService.get(playerId)
+        val dates = DateUtils.getIntervalDatesOfWeekDependsOnDay(date, weeksAgo)
 
         return repository.calculateDeltaByPlayerAndIntervalDates(player, dates.first, dates.second)
     }

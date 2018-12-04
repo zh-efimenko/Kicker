@@ -6,10 +6,12 @@ import com.kicker.api.domain.model.game.GamePageRequest
 import com.kicker.api.domain.model.game.GameRegistrationRequest
 import com.kicker.api.model.Player
 import com.kicker.api.service.GameService
+import com.kicker.api.service.PlayerToGameService
 import io.swagger.annotations.ApiOperation
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import springfox.documentation.annotations.ApiIgnore
+import java.sql.Timestamp
 import javax.validation.Valid
 
 /**
@@ -18,7 +20,8 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/api/games")
 class GameController(
-        private val service: GameService
+        private val service: GameService,
+        private val playerToGameService: PlayerToGameService
 ) {
 
     @ApiOperation(value = "Get all games", notes = """Pageable.
@@ -42,6 +45,12 @@ class GameController(
     fun gameRegistration(@ApiIgnore authentication: Authentication, @Valid @RequestBody request: GameRegistrationRequest): GameDto {
         val currentPlayer = authentication.principal as Player
         return GameDto(service.gameRegistration(currentPlayer.id, request))
+    }
+
+    @GetMapping("/update/{time}")
+    fun update(@PathVariable time: Long) {
+        val date = Timestamp(time).toLocalDateTime().toLocalDate()
+        playerToGameService.updateStats(date)
     }
 
     @ApiOperation("Get array of count of games per day during last 7 days")
